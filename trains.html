@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>قطار الكلمات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="global.css">
+    <style>
+        body { background: #fdfbf7; display: flex; flex-direction: column; min-height: 100vh;}
+        
+        .top-bar {
+            background: var(--primary-color);
+            color: white;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .back-btn {
+            color: white; text-decoration: none; font-weight: bold; background: rgba(255,255,255,0.2);
+            padding: 5px 15px; border-radius: 20px;
+        }
+
+        .score-board {
+            font-weight: bold; background: #FFD700; color: #333; padding: 5px 15px; border-radius: 20px;
+        }
+
+        .instruction {
+            text-align: center; padding: 10px; font-size: 1rem; color: var(--text-muted);
+        }
+
+        /* حاوية التذكرة (الكلمة المعروضة حالياً) */
+        .ticket-area {
+            flex-grow: 1; display: flex; align-items: center; justify-content: center;
+            padding: 20px; perspective: 1000px;
+        }
+
+        .ticket-card {
+            background: #fff; border: 4px dashed var(--secondary-color); border-radius: 15px;
+            padding: 40px; text-align: center; width: 100%; max-width: 300px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); background-color: #fffde7;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            /* لمنع التحديد العشوائي على الموبايل */
+            user-select: none;
+        }
+
+        .ticket-card h2 {
+            font-size: 3.5rem; margin: 0; color: #2c3e50;
+        }
+
+        .ticket-title {
+            font-size: 1.2rem; color: var(--secondary-color); font-weight: bold; padding-bottom: 10px;
+        }
+
+        /* شبكة عربات القطار في الأسفل */
+        .train-yard {
+            background: #eee; padding: 15px; border-top: 4px solid #ccc;
+            border-top-left-radius: 30px; border-top-right-radius: 30px;
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+        }
+
+        .train-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+            max-width: 600px; margin: 0 auto;
+        }
+
+        /* عربة القطار (زر الاختيار) */
+        .carriage-btn {
+            background: white; border: 2px solid #ddd; padding: 15px 5px;
+            border-radius: 12px; text-align: center; font-weight: bold;
+            font-size: 1.1rem; color: #333; cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); user-select: none;
+            transition: all 0.1s ease;
+            display: flex; flex-direction: column; align-items: center; gap: 5px;
+        }
+
+        .carriage-btn:active {
+            transform: scale(0.95); background: #f0f0f0;
+        }
+
+        /* أنيميشن */
+        @keyframes popOut {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1) translateY(-20px); opacity: 0.8; }
+            100% { transform: scale(0) translateY(100px); opacity: 0; }
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0) translateY(-50px); opacity: 0; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        @keyframes shakeRed {
+            0% { transform: translateX(0); border-color: red;}
+            25% { transform: translateX(-8px); border-color: red;}
+            50% { transform: translateX(8px); border-color: red;}
+            75% { transform: translateX(-8px); border-color: red;}
+            100% { transform: translateX(0); border-color: var(--secondary-color);}
+        }
+
+        .ticket-out { animation: popOut 0.5s forwards; }
+        .ticket-in { animation: popIn 0.5s forwards; }
+        .ticket-shake { animation: shakeRed 0.4s; }
+
+    </style>
+</head>
+<body>
+
+    <header class="top-bar">
+        <a href="index.html" class="back-btn">العودة 🏠</a>
+        <div class="score-board">التذاكر: <span id="scoreVal">0</span></div>
+    </header>
+
+    <div class="instruction">
+        أي المقطورات تناسب هذه الكلمة؟ انقر على المقطورة الصحيحة!
+    </div>
+
+    <!-- آلة التذاكر -->
+    <div class="ticket-area">
+        <div class="ticket-card" id="currentTicket">
+            <div class="ticket-title">تذكرة سفر</div>
+            <h2 id="wordDisplay">...</h2>
+        </div>
+    </div>
+
+    <!-- شبكة المقطورات -->
+    <div class="train-yard">
+        <div class="train-grid">
+            <div class="carriage-btn" onclick="checkAnswer('مفرد')">
+                <span>🚂</span> مفرد
+            </div>
+            <div class="carriage-btn" onclick="checkAnswer('مثنى')">
+                <span>🚃</span> مثنى
+            </div>
+            <div class="carriage-btn" onclick="checkAnswer('جمع مذكر سالم')">
+                <span>🚃</span> جمع مذكر سالم
+            </div>
+            <div class="carriage-btn" onclick="checkAnswer('جمع مؤنث سالم')">
+                <span>🚃</span> جمع مؤنث سالم
+            </div>
+            <div class="carriage-btn" onclick="checkAnswer('جمع تكسير')">
+                <span>🚃</span> جمع تكسير
+            </div>
+            <div class="carriage-btn" onclick="checkAnswer('الأسماء الخمسة')">
+                <span>🚃</span> الأسماء الخمسة
+            </div>
+        </div>
+    </div>
+
+    <script src="confetti.js"></script>
+    <script src="trains.js"></script>
+</body>
+</html>
