@@ -21,6 +21,13 @@ const availableSigns = [
 
 // متغير لحفظ العلامة المحددة حالياً من بنك العلامات
 let selectedSign = null;
+let currentLives = 3;
+
+// دعم تحديث القلوب
+function updateLivesDisplay() {
+    const livesEl = document.getElementById("livesVal");
+    if(livesEl) livesEl.textContent = '❤️'.repeat(currentLives) + '💔'.repeat(3 - currentLives);
+}
 
 // دالة لبناء بنك العلامات
 function renderSignsBank() {
@@ -55,7 +62,10 @@ function renderTable() {
     const tbody = document.getElementById("tableBody");
     tbody.innerHTML = '';
 
-    tableData.forEach((row, rowIndex) => {
+    // خلط ترتيب الصفوف عشوائياً لزيادة التحدي في كل محاولة
+    const shuffledData = [...tableData].sort(() => Math.random() - 0.5);
+
+    shuffledData.forEach((row, rowIndex) => {
         const tr = document.createElement("tr");
         
         // خلية نوع الكلمة (ثابتة)
@@ -104,10 +114,19 @@ function attemptDrop(cell) {
         cell.classList.remove("success");
         cell.classList.add("error");
         
+        // خصم قلب
+        currentLives--;
+        updateLivesDisplay();
+
         // إفراغ الخلية بعد لحظة قصيرة وإزالة الاهتزاز
         setTimeout(() => {
             cell.textContent = "";
             cell.classList.remove("error");
+            
+            // التحقق من الخسارة
+            if (currentLives <= 0) {
+                gameOver();
+            }
         }, 800);
     }
 }
@@ -134,4 +153,13 @@ function checkTableWin() {
             tb.style.fontSize = "1.2rem";
         }, 500);
     }
+}
+
+// دالة الخسارة وإعادة اللعب
+function gameOver() {
+    alert("انتهت محاولاتك يا بطل! لا تستسلم، ركز وحاول مرة أخرى.");
+    currentLives = 3;
+    updateLivesDisplay();
+    // إعادة بناء الجدول لخلطه من جديد ومسح الإجابات السابقة
+    renderTable();
 }

@@ -45,6 +45,23 @@ const wordDatabase = [
 let currentWordObj = null;
 let score = 0;
 let isAnimating = false;
+let currentLives = 3;
+
+// استدعاء وتحديث القلوب
+function updateLivesDisplay() {
+    const livesEl = document.getElementById("livesVal");
+    if(livesEl) livesEl.textContent = '❤️'.repeat(currentLives) + '💔'.repeat(3 - currentLives);
+}
+
+// دالة الخسارة للقطار
+function gameOver() {
+    alert(`للأسف لقد خسرت التذاكر! مجموعتك كانت: ${score}. المحاولة من جديد؟`);
+    score = 0;
+    currentLives = 3;
+    document.getElementById("scoreVal").textContent = score;
+    updateLivesDisplay();
+    loadNewTicket();
+}
 
 // دالة لجلب كلمة عشوائية
 function getRandomWord() {
@@ -107,10 +124,19 @@ function checkAnswer(selectedType) {
         void ticketCard.offsetWidth; 
         ticketCard.classList.add("ticket-shake");
 
+        // خصم القلب هنا
+        currentLives--;
+        updateLivesDisplay();
+
         // فك القفل بعد انتهاء الاهتزاز ليحاول مجدداً
         setTimeout(() => {
             ticketCard.classList.remove("ticket-shake");
             isAnimating = false;
+            
+            // تحقق من نهاية اللعبة
+            if(currentLives <= 0) {
+                gameOver();
+            }
         }, 400);
     }
 }
