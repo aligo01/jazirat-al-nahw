@@ -1,4 +1,3 @@
-// البيانات الأساسية لجدول الإعراب
 const tableData = [
     { type: "المفرد وجمع التكسير", answers: ["الضمة", "الفتحة", "الكسرة", "--"] },
     { type: "الممنوع من الصرف", answers: ["الضمة", "الفتحة", "الفتحة", "--"] },
@@ -11,7 +10,6 @@ const tableData = [
     { type: "الأفعال الخمسة", answers: ["ثبوت النون", "حذف النون", "--", "حذف النون"] }
 ];
 
-// بنك العلامات (إمداد غير محدود ليسهل الاستخدام)
 const availableSigns = [
     "الضمة", "الفتحة", "الكسرة", 
     "الواو", "الياء", "الألف",
@@ -19,17 +17,51 @@ const availableSigns = [
     "ثبوت النون", "حذف النون", "--"
 ];
 
-// متغير لحفظ العلامة المحددة حالياً من بنك العلامات
 let selectedSign = null;
 let currentLives = 3;
 
-// دعم تحديث القلوب
+// متغيرات العداد الزمني
+let timerInterval = null;
+let secondsElapsed = 0;
+let gameStarted = false;
+
+// دالة تنسيق الثواني إلى (دقيقة:ثانية)
+function formatTime(sec) {
+    const min = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${min.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+}
+
+// دالة بدء العداد
+function startTimer() {
+    if (gameStarted) return; // لضمان عدم تشغيل أكثر من عداد
+    gameStarted = true;
+    timerInterval = setInterval(() => {
+        secondsElapsed++;
+        document.getElementById("timerDisplay").textContent = `الوقت: ${formatTime(secondsElapsed)}`;
+    }, 1000);
+}
+
+// دالة إيقاف العداد
+function stopTimer() {
+    clearInterval(timerInterval);
+}
+
+// دالة تصفير العداد
+function resetTimer() {
+    stopTimer();
+    secondsElapsed = 0;
+    gameStarted = false;
+    document.getElementById("timerDisplay").textContent = "الوقت: 00:00";
+}
+
+// تحديث عرض القلوب
 function updateLivesDisplay() {
     const livesEl = document.getElementById("livesVal");
     if(livesEl) livesEl.textContent = '❤️'.repeat(currentLives) + '💔'.repeat(3 - currentLives);
 }
 
-// دالة لبناء بنك العلامات
+// بناء بنك العلامات
 function renderSignsBank() {
     const bank = document.getElementById("signsBank");
     bank.innerHTML = '';
@@ -42,58 +74,59 @@ function renderSignsBank() {
     });
 }
 
-// دالة اختيار علامة من البنك
+// تحديد علامة من البنك
 function selectSign(element, sign) {
-    // إزالة التحديد من جميع العلامات
+    // إزالة التحديد السابق
     document.querySelectorAll(".sign-badge").forEach(el => el.classList.remove("selected"));
-    
-    // تحديد العلامة الجديدة
     element.classList.add("selected");
     selectedSign = sign;
 
-    // تمييز الجدول بصرياً لإشعار المستخدم بأنه جاهز للنقر
+    // تمييز الخانات القابلة للإسقاط
     document.querySelectorAll(".drop-slot:not(.success)").forEach(slot => {
         slot.classList.add("selected-target");
     });
 }
 
-// دالة لبناء جدول الإعراب
+// بناء الجدول (بدون عشوائية كما طلبت)
 function renderTable() {
     const tbody = document.getElementById("tableBody");
     tbody.innerHTML = '';
 
-    // خلط ترتيب الصفوف عشوائياً لزيادة التحدي في كل محاولة
-    const shuffledData = [...tableData].sort(() => Math.random() - 0.5);
-
-    shuffledData.forEach((row, rowIndex) => {
+    tableData.forEach((row, rowIndex) => {
         const tr = document.createElement("tr");
         
-        // خلية نوع الكلمة (ثابتة)
+        // الخلية الجانبية (نوع الكلمة)
         const headerTd = document.createElement("td");
         headerTd.className = "row-header";
         headerTd.textContent = row.type;
         tr.appendChild(headerTd);
 
-        // خلايا الحالات الإعرابية الأربع (مربعات فارغة للإجابة)
+        // خلايا العلامات الأربع
         row.answers.forEach((correctAnswer, colIndex) => {
             const td = document.createElement("td");
             td.className = "drop-slot";
-            td.dataset.answer = correctAnswer; // تخزين الإجابة الصحيحة مخفية في الخلية
-            td.onclick = () => attemptDrop(td);
+            td.dataset.answer = correctAnswer; 
+            // نمرر الصف والخلية الرأسية لدالة المحاولة لكي نلونها إذا اكتملت
+            td.onclick = () => attemptDrop(td, tr, headerTd);
             tr.appendChild(td);
         });
 
         tbody.appendChild(tr);
     });
+    
+    // نصيحة البنك المعتادة
+    const bankTitle = document.getElementById("bankTitle");
+    bankTitle.innerHTML = "اختر العلامة من هنا 👇";
+    bankTitle.style.color = "var(--text-muted)";
 }
 
-// دالة محاولة وضع العلامة في الجدول
-function attemptDrop(cell) {
-    // إذا لم يتم تحديد علامة، أو الخلية محلولة مسبقاً، نخرج
+// محاولة وضع الإجابة
+function attemptDrop(cell, rowElement, headerElement) {
+    startTimer(); // يبدأ العداد مع أول نقرة يقوم بها الطالب في الجدول
+
     if (!selectedSign || cell.classList.contains("success")) {
-        // تنبيه بسيط لمن لم يختر علامة
         if(!selectedSign) {
-            const bankTitle = document.querySelector(".bank-title");
+            const bankTitle = document.getElementById("bankTitle");
             bankTitle.style.color = "red";
             setTimeout(() => bankTitle.style.color = "", 1000);
         }
@@ -107,23 +140,22 @@ function attemptDrop(cell) {
         cell.textContent = selectedSign;
         cell.classList.remove("error", "selected-target");
         cell.classList.add("success");
-        checkTableWin();
+        
+        checkRowWin(rowElement, headerElement); // فحص إذا اكتمل السطر
+        checkTableWin(); // فحص إذا اكتمل الجدول
     } else {
         // إجابة خاطئة
         cell.textContent = selectedSign;
         cell.classList.remove("success");
         cell.classList.add("error");
         
-        // خصم قلب
         currentLives--;
         updateLivesDisplay();
 
-        // إفراغ الخلية بعد لحظة قصيرة وإزالة الاهتزاز
         setTimeout(() => {
             cell.textContent = "";
             cell.classList.remove("error");
             
-            // التحقق من الخسارة
             if (currentLives <= 0) {
                 gameOver();
             }
@@ -131,35 +163,54 @@ function attemptDrop(cell) {
     }
 }
 
-// تشغيل الدوال عند تحميل الصفحة
-document.addEventListener("DOMContentLoaded", () => {
-    renderSignsBank();
-    renderTable();
-});
+// دالة فحص اكتمال سطر معين
+function checkRowWin(rowElement, headerElement) {
+    const allSlotsInRow = rowElement.querySelectorAll('.drop-slot');
+    const successSlotsInRow = rowElement.querySelectorAll('.drop-slot.success');
+    
+    if (allSlotsInRow.length > 0 && allSlotsInRow.length === successSlotsInRow.length) {
+        // السطر اكتمل، قم بتلوينه ووضع علامة الصح
+        headerElement.classList.add('row-done');
+        // تفادي تكرار التحديد إذا تم النقر عليه بطريقة ما عبر حدث آخر
+        if(!headerElement.textContent.includes("✅")) {
+            headerElement.innerHTML = headerElement.textContent + " ✅";
+        }
+    }
+}
 
-// دالة فحص الفوز باكمال الجدول
+// دالة فحص الفوز باكمال الجدول كله
 function checkTableWin() {
     const allSlots = document.querySelectorAll('.drop-slot');
     const successSlots = document.querySelectorAll('.drop-slot.success');
+    
     if(allSlots.length > 0 && allSlots.length === successSlots.length) {
+        stopTimer(); // إيقاف العداد
         if(typeof throwConfetti === 'function') throwConfetti();
         
-        // إظهار رسالة للطفل
+        // إظهار رسالة النجاح والوقت
         setTimeout(() => {
-            const tb = document.querySelector('.bank-title');
-            tb.innerHTML = "🎉 بطل الأبطال! لقد رتبت الجدول بالكامل بنجاح! 🎉";
+            const tb = document.getElementById("bankTitle");
+            tb.innerHTML = `🎉 ممتاز! لقد أنهيت الجدول في: <span style="background:#FFEB3B; padding:2px 8px; border-radius:5px; color:#333;">${formatTime(secondsElapsed)}</span> 🎉`;
             tb.style.color = "var(--success-color)";
             tb.style.fontWeight = "bold";
-            tb.style.fontSize = "1.2rem";
+            tb.style.fontSize = "1.1rem";
         }, 500);
     }
 }
 
 // دالة الخسارة وإعادة اللعب
 function gameOver() {
-    alert("انتهت محاولاتك يا بطل! لا تستسلم، ركز وحاول مرة أخرى.");
+    stopTimer();
+    alert("انتهت محاولاتك يا غالي! ركز واستعن بالله وحاول مرة أخرى.");
     currentLives = 3;
     updateLivesDisplay();
-    // إعادة بناء الجدول لخلطه من جديد ومسح الإجابات السابقة
-    renderTable();
+    resetTimer(); // تصفير الوقت للبدء من جديد
+    renderTable(); // إعادة بناء الجدول
 }
+
+// التشغيل الأولي
+document.addEventListener("DOMContentLoaded", () => {
+    updateLivesDisplay();
+    renderSignsBank();
+    renderTable();
+});

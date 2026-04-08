@@ -7,12 +7,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="global.css">
     <style>
-        body { background: #fdfbf7; padding-bottom: 120px; /* مساحة للبنك الثابت أسفل الشاشة */ }
+        body { background: #fdfbf7; padding-bottom: 150px; overflow-x: hidden; }
         
         .top-bar {
             background: var(--primary-color);
             color: white;
-            padding: 15px;
+            padding: 10px 15px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -23,147 +23,98 @@
         }
 
         .back-btn {
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
+            color: white; text-decoration: none; font-weight: bold;
             background: rgba(255,255,255,0.2);
-            padding: 5px 15px;
-            border-radius: 20px;
+            padding: 5px 12px; border-radius: 20px; font-size: 0.9rem;
         }
 
         .instruction {
-            text-align: center;
-            padding: 15px;
-            font-size: 1.1rem;
-            color: var(--text-main);
-            background: #fff;
-            margin: 10px;
-            border-radius: 12px;
+            text-align: center; padding: 10px; font-size: 0.95rem; color: var(--text-main);
+            background: #fff; margin: 10px; border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
-        /* حاوية الجدول تدعم التمرير الأفقي بسلاسة إن لزم الأمر على الشاشات الضيقة جداً */
+        .swipe-hint {
+            display: none; text-align: center; font-size: 0.8rem; color: var(--primary-color); animation: pulse 1.5s infinite;
+        }
+
+        @media (max-width: 600px) {
+            .swipe-hint { display: block; }
+        }
+
+        /* تحسينات الموبايل: جعل الجدول يمرر بشكل مستقل دون ضغط الخلايا */
         .table-container {
             overflow-x: auto;
-            padding: 10px;
+            padding: 5px;
             -webkit-overflow-scrolling: touch;
+            width: 100vw;
+            margin-right: -10px; /* لتعويض مسافات الجوانب */
         }
 
         .grammar-table {
             border-collapse: separate;
-            border-spacing: 4px;
-            width: 100%;
-            min-width: 320px;
+            border-spacing: 3px;
+            width: max-content; /* هام جداً للموبايل لإجبار الجدول على أخذ مساحته الطبيعية */
+            min-width: 100%;
+            margin: 0 auto;
         }
 
         .grammar-table th {
-            background: #eef2f5;
-            color: #444;
-            padding: 12px 5px;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            text-align: center;
+            background: #eef2f5; color: #444; padding: 10px;
+            border-radius: 6px; font-size: 0.9rem; text-align: center;
+            white-space: nowrap;
         }
 
         .grammar-table td {
-            background: white;
-            padding: 8px 4px;
-            border-radius: 8px;
-            text-align: center;
-            vertical-align: middle;
-            border: 2px dashed #ccc;
-            height: 55px;
-            transition: all 0.2s ease;
+            background: white; padding: 6px; border-radius: 6px;
+            text-align: center; vertical-align: middle;
+            border: 2px dashed #ccc; height: 50px; min-width: 75px;
+            transition: all 0.2s ease; white-space: nowrap; font-size: 0.95rem;
         }
 
+        /* تثبيت العمود الأول أثناء سحب المستخدم للجدول */
         .row-header {
-            background: #ffe0b2 !important;
-            border: 2px solid #ffcc80 !important;
-            font-weight: bold;
-            font-size: 0.9rem !important;
-            color: #d84315 !important;
-            width: 30%;
+            background: #ffe0b2 !important; border: 2px solid #ffcc80 !important;
+            font-weight: bold; font-size: 0.85rem !important;
+            color: #d84315 !important; white-space: normal !important;
+            width: 120px; min-width: 120px; position: sticky; right: 0; z-index: 5;
+            box-shadow: -3px 0 6px rgba(0,0,0,0.05);
         }
 
-        /* خلايا تعبئة العلامات */
-        .drop-slot {
-            cursor: pointer;
-            position: relative;
-        }
-        
-        .drop-slot.selected-target {
-            border-color: var(--primary-color);
-            background: #e3effd;
+        /* تصميم السطر المكتمل */
+        .row-header.row-done {
+            background: #c8e6c9 !important;
+            border-color: #81c784 !important;
+            color: #2e7d32 !important;
+            font-size: 0.8rem !important;
         }
 
-        .drop-slot.success {
-            border: 2px solid var(--success-color);
-            background: #e8f5e9;
-            color: var(--success-color);
-            font-weight: bold;
-        }
+        .drop-slot { cursor: pointer; position: relative; }
+        .drop-slot.selected-target { border-color: var(--primary-color); background: #e3effd; }
+        .drop-slot.success { border: 2px solid var(--success-color); background: #e8f5e9; color: var(--success-color); font-weight: bold; }
+        .drop-slot.error { border: 2px solid var(--danger-color); background: #ffebee; animation: shake 0.4s; }
 
-        .drop-slot.error {
-            border: 2px solid var(--danger-color);
-            background: #ffebee;
-            animation: shake 0.4s;
-        }
-
-        /* بنك العلامات (ثابت في الأسفل لحركة الإبهام) */
         .bank-container {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            padding: 15px;
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
-            z-index: 100;
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: white; padding: 12px; box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
+            border-top-left-radius: 20px; border-top-right-radius: 20px; z-index: 100;
         }
 
-        .bank-title {
-            text-align: center;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-        }
-
-        .signs-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            justify-content: center;
-            max-height: 120px;
-            overflow-y: auto;
-        }
-
+        .bank-title { text-align: center; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;}
+        .signs-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;}
+        
         .sign-badge {
-            background: var(--primary-color);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.1s, opacity 0.2s;
-            user-select: none;
+            background: var(--primary-color); color: white; padding: 8px 12px;
+            border-radius: 8px; font-size: 0.95rem; font-weight: bold; cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s; user-select: none;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
-
-        .sign-badge:active {
-            transform: scale(0.9);
-        }
-
+        .sign-badge:active { transform: scale(0.9); }
         .sign-badge.selected {
-            background: var(--secondary-color);
-            transform: scale(1.1);
-            box-shadow: 0 4px 10px rgba(242, 153, 74, 0.5);
-            border: 2px solid #fff;
+            background: var(--secondary-color); transform: scale(1.1);
+            box-shadow: 0 4px 10px rgba(242, 153, 74, 0.5); border: 2px solid #fff;
         }
 
-        /* أنيميشن الاهتزاز عند الخطأ */
         @keyframes shake {
             0% { transform: translateX(0); }
             25% { transform: translateX(-5px); }
@@ -171,32 +122,30 @@
             75% { transform: translateX(-5px); }
             100% { transform: translateX(0); }
         }
-        
-        /* علامة فارغة في بنك العلامات للحفاظ على الشكل */
-        .sign-badge.used {
-             opacity: 0.3;
-             pointer-events: none;
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; transform: scale(0.98); }
+            50% { opacity: 1; transform: scale(1.02); }
         }
-
     </style>
 </head>
 <body>
 
     <header class="top-bar">
         <a href="index.html" class="back-btn">العودة 🏠</a>
-        <h2 style="font-size: 1.2rem; margin:0;">جدول الإعراب</h2>
+        <div id="timerDisplay" style="font-weight:bold; font-size:0.95rem; background:rgba(0,0,0,0.1); padding: 5px 10px; border-radius:15px; color:#FFD700;">الوقت: 00:00</div>
         <div class="lives" style="font-weight:bold; background:rgba(0,0,0,0.1); padding: 5px 10px; border-radius:15px; font-size:0.9rem;" dir="ltr"><span id="livesVal">❤️❤️❤️</span></div>
     </header>
 
     <div class="instruction">
-        👉 <b>انقر</b> على العلامة الإعرابية في الأسفل لاختيارها، ثم <b>انقر</b> على المربع الفارغ المناسب في الجدول لتضعها فيه!
+        👉 انقر العلامة بالأسفل لنسخها، ثم انقر المربع الذي يناسبها! 
     </div>
+    <div class="swipe-hint">↔️ اسحب الجدول لليمين واليسار لرؤية بقية الخانات ↔️</div>
 
     <div class="table-container">
         <table class="grammar-table" id="mainTable">
             <thead>
                 <tr>
-                    <th>نوع الكلمة</th>
+                    <th style="position: sticky; right:0; z-index:5; box-shadow: -2px 0 5px rgba(0,0,0,0.05);">نوع الكلمة</th>
                     <th>الرفع</th>
                     <th>النصب</th>
                     <th>الجر</th>
@@ -204,19 +153,15 @@
                 </tr>
             </thead>
             <tbody id="tableBody">
-                <!-- سيتم حقن الصفوف بواسطة الجافاسكربت -->
             </tbody>
         </table>
     </div>
 
     <div class="bank-container">
-        <div class="bank-title">علبة العلامات الإعرابية - اختر من هنا 👇</div>
-        <div class="signs-grid" id="signsBank">
-            <!-- سيتم توليد العلامات هنا بواسطة الجافاسكربت -->
-        </div>
+        <div class="bank-title" id="bankTitle">اختر العلامة من هنا 👇</div>
+        <div class="signs-grid" id="signsBank"></div>
     </div>
 
-    <!-- استدعاء ملف المنطق -->
     <script src="confetti.js"></script>
     <script src="table.js"></script>
 </body>
