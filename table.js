@@ -19,6 +19,7 @@ const availableSigns = [
 
 let selectedSign = null;
 let currentLives = 3;
+const successAudio = new Audio('clap.mp3'); // ملف التصفيق
 
 // متغيرات العداد الزمني
 let timerInterval = null;
@@ -136,7 +137,10 @@ function attemptDrop(cell, rowElement, headerElement) {
     const expectedAnswer = cell.dataset.answer;
 
     if (selectedSign === expectedAnswer) {
-        // إجابة صحيحة
+        // إجابة صحيحة وتشغيل التصفيق
+        successAudio.currentTime = 0;
+        successAudio.play().catch(e => {});
+
         cell.textContent = selectedSign;
         cell.classList.remove("error", "selected-target");
         cell.classList.add("success");
@@ -201,7 +205,7 @@ function checkTableWin() {
 // دالة الخسارة وإعادة اللعب
 function gameOver() {
     stopTimer();
-    alert("انتهت محاولاتك يا غالي! ركز واستعن بالله وحاول مرة أخرى.");
+    alert("انتهت كل محاولاتك! ركز واستعن بالله وحاول مرة أخرى.");
     currentLives = 3;
     updateLivesDisplay();
     resetTimer(); // تصفير الوقت للبدء من جديد

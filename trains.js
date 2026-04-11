@@ -46,6 +46,7 @@ let currentWordObj = null;
 let score = 0;
 let isAnimating = false;
 let currentLives = 3;
+const successAudio = new Audio('clap.mp3'); // ملف التصفيق
 
 // استدعاء وتحديث القلوب
 function updateLivesDisplay() {
@@ -55,7 +56,7 @@ function updateLivesDisplay() {
 
 // دالة الخسارة للقطار
 function gameOver() {
-    alert(`للأسف لقد خسرت التذاكر! مجموعتك كانت: ${score}. المحاولة من جديد؟`);
+    alert(`انتهت كل محاولاتك! التذاكر التي جمعتها: ${score}. هل نُحاول من جديد؟`);
     score = 0;
     currentLives = 3;
     document.getElementById("scoreVal").textContent = score;
@@ -97,6 +98,9 @@ function checkAnswer(selectedType) {
 
     if (selectedType === currentWordObj.type) {
         // إجابة صحيحة
+        successAudio.currentTime = 0;
+        successAudio.play().catch(e => {});
+
         isAnimating = true;
         score++;
         document.getElementById("scoreVal").textContent = score;
