@@ -33,19 +33,6 @@
         </main>
     </div>
 
-    <!-- مشغل الأنشودة في الخلفية -->
-    <audio id="bgMusic" loop>
-        <source src="nasheed.mp3" type="audio/mpeg">
-    </audio>
-
-    <script>
-        // تشغيل الأنشودة فور قيام الزائر بأول نقرة/لمسة في الموقع
-        document.body.addEventListener('click', function() {
-            const bgMusic = document.getElementById('bgMusic');
-            if(bgMusic.paused) {
-                bgMusic.play().catch(e => console.log('في انتظار تفاعل المستخدم'));
-            }
-        }, { once: true }); // مرة واحدة تجنبا للتكرار
-    </script>
+    <script src="audioManager.js"></script>
 </body>
 </html>
