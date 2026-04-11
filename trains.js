@@ -47,6 +47,7 @@ let score = 0;
 let isAnimating = false;
 let currentLives = 3;
 const successAudio = new Audio('clap.mp3'); // ملف التصفيق
+const errorAudio = new Audio('error.mp3'); // ملف الخطأ
 
 // استدعاء وتحديث القلوب
 function updateLivesDisplay() {
@@ -119,7 +120,10 @@ function checkAnswer(selectedType) {
         }, 500);
 
     } else {
-        // إجابة خاطئة
+        // إجابة خاطئة وتشغيل صوت الخطأ
+        errorAudio.currentTime = 0;
+        errorAudio.play().catch(e => {});
+
         isAnimating = true;
 
         // إزالة الأنيميشن القديم ثم إضافة الاهتزاز

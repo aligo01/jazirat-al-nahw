@@ -20,6 +20,7 @@ const availableSigns = [
 let selectedSign = null;
 let currentLives = 3;
 const successAudio = new Audio('clap.mp3'); // ملف التصفيق
+const errorAudio = new Audio('error.mp3'); // ملف صوت الخطأ
 
 // متغيرات العداد الزمني
 let timerInterval = null;
@@ -148,7 +149,10 @@ function attemptDrop(cell, rowElement, headerElement) {
         checkRowWin(rowElement, headerElement); // فحص إذا اكتمل السطر
         checkTableWin(); // فحص إذا اكتمل الجدول
     } else {
-        // إجابة خاطئة
+        // إجابة خاطئة مع صوت
+        errorAudio.currentTime = 0;
+        errorAudio.play().catch(e => {});
+
         cell.textContent = selectedSign;
         cell.classList.remove("success");
         cell.classList.add("error");
