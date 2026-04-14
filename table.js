@@ -19,8 +19,9 @@ const availableSigns = [
 
 let selectedSign = null;
 let currentLives = 3;
-const successAudio = new Audio('clap.mp3'); // ملف التصفيق
+const successAudio = new Audio('clap.mp3'); // ملف التصفيق لخانات الجدول
 const errorAudio = new Audio('error.mp3'); // ملف صوت الخطأ
+const bigClapAudio = new Audio('big_clap.mp3'); // صوت احتفالي كبير لاكتمال الجدول
 
 // متغيرات العداد الزمني
 let timerInterval = null;
@@ -193,6 +194,11 @@ function checkTableWin() {
     
     if(allSlots.length > 0 && allSlots.length === successSlots.length) {
         stopTimer(); // إيقاف العداد
+
+        // تشغيل صوت التصفيق الحار للإنجاز الكبير
+        bigClapAudio.currentTime = 0;
+        bigClapAudio.play().catch(e => {});
+
         if(typeof throwConfetti === 'function') throwConfetti();
         
         // إظهار رسالة النجاح والوقت
