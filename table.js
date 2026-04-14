@@ -21,7 +21,7 @@ let selectedSign = null;
 let currentLives = 3;
 const successAudio = new Audio('clap.mp3'); // ملف التصفيق لخانات الجدول
 const errorAudio = new Audio('error.mp3'); // ملف صوت الخطأ
-const bigClapAudio = new Audio('big_clap.mp3'); // صوت احتفالي كبير لاكتمال الجدول
+const bigClapAudio = new Audio('big_clap.m4a'); // صوت احتفالي كبير لاكتمال الجدول
 
 // متغيرات العداد الزمني
 let timerInterval = null;
