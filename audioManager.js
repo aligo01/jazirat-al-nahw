@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", function() {
         bgMusic = document.createElement('audio');
         bgMusic.id = 'bgMusic';
         bgMusic.loop = true;
-        bgMusic.src = 'nasheed.mp3';
+        bgMusic.src = 'nasheed.wav';
         document.body.appendChild(bgMusic);
     }
 
