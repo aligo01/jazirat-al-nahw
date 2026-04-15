@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", function() {
         bgMusic.id = 'bgMusic';
         bgMusic.loop = true;
         bgMusic.src = 'nasheed.wav';
+        bgMusic.volume = 0.2; // خفض الصوت ليكون في الخلفية
         document.body.appendChild(bgMusic);
     }
 
