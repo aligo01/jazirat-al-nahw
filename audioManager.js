@@ -6,12 +6,13 @@ document.addEventListener("DOMContentLoaded", function() {
         bgMusic = document.createElement('audio');
         bgMusic.id = 'bgMusic';
         bgMusic.loop = true;
+        bgMusic.preload = 'auto'; // تحميل مسبق تلقائي
         bgMusic.src = 'nasheed.wav';
-        bgMusic.volume = 0.2; // خفض الصوت ليكون في الخلفية
+        bgMusic.volume = 0.2; 
         document.body.appendChild(bgMusic);
     }
 
-    // استعادة وقت التشغيل من الصفحة السابقة لكي يبدو كأنه مستمر وغير منقطع
+    // استعادة حالة الصوت
     const savedTime = sessionStorage.getItem('nasheedTime');
     const wasPlaying = sessionStorage.getItem('nasheedPlaying');
     const isMuted = sessionStorage.getItem('nasheedMuted') === 'true';
@@ -24,39 +25,43 @@ document.addEventListener("DOMContentLoaded", function() {
         bgMusic.muted = true;
     }
 
-    // محاولة التشغيل المستمر
-    const playMusic = () => {
+    // دالة التشغيل بذكاء
+    const attemptPlay = () => {
+        if (sessionStorage.getItem('nasheedMuted') === 'true') return;
+        
         bgMusic.play().then(() => {
             sessionStorage.setItem('nasheedPlaying', 'true');
         }).catch(() => {
-            // إذا منع المتصفح التشغيل، ننتظر أول نقرة في أي مكان بالصفحة
-            document.body.addEventListener('click', function playOnClick() {
-                bgMusic.play();
-                sessionStorage.setItem('nasheedPlaying', 'true');
-                document.body.removeEventListener('click', playOnClick);
-            }, { once: true });
+            // إذا فشل (بسبب قيود المتصفح)، ننتظر أول تفاعل
+            console.log("Audio waiting for user interaction...");
         });
     };
 
-    // تشغيل مباشر إذا كان يعمل في الصفحة السابقة، أو انتظار النقرة الأولى
-    if (wasPlaying === 'true') {
-        playMusic();
-    } else {
-        document.body.addEventListener('click', playOnClickInit = () => {
-             playMusic();
-             document.body.removeEventListener('click', playOnClickInit);
-        }, { once: true });
-    }
+    // المحاولة عند التحميل
+    attemptPlay();
+
+    // أي نقرة في أي مكان تبدأ الصوت فوراً إذا لم يكن قد بدأ
+    document.addEventListener('click', function globalClick() {
+        if (!bgMusic.muted && bgMusic.paused) {
+            attemptPlay();
+        }
+    }, { once: false }); // نبقيها مستمعة لأي نقرة لضمان البدء
 
     // إضافة زر التحكم في الصوت
     const muteBtn = document.createElement('button');
     const updateBtnText = () => {
-        muteBtn.innerHTML = bgMusic.muted ? '🔇' : '🔊';
-        muteBtn.title = bgMusic.muted ? 'تشغيل الآهات' : 'إيقاف الآهات';
+        // في الصفحة الرئيسية نستخدم نص، في الصفحات الأخرى أيقونة فقط
+        const isMainPage = !document.querySelector('.back-btn');
+        if (isMainPage) {
+            muteBtn.innerHTML = bgMusic.muted ? '🔇 تشغيل الآهات' : '🔊 إيقاف الآهات';
+        } else {
+            muteBtn.innerHTML = bgMusic.muted ? '🔇' : '🔊';
+            muteBtn.title = bgMusic.muted ? 'تشغيل الآهات' : 'إيقاف الآهات';
+        }
     };
     updateBtnText();
 
-    // تصميم الزر ليكون متوافقاً مع زر العودة
+    // تصميم الزر
     muteBtn.style.cssText = `
         background: rgba(255, 255, 255, 0.2);
         border: none;
@@ -69,16 +74,17 @@ document.addEventListener("DOMContentLoaded", function() {
         align-items: center;
         justify-content: center;
         transition: all 0.2s ease;
-        margin-right: 8px;
         height: 34px;
         font-family: inherit;
+        -webkit-tap-highlight-color: transparent;
     `;
 
-    muteBtn.onclick = () => {
+    muteBtn.onclick = (e) => {
+        e.stopPropagation(); // منع تداخل النقرات
         if (bgMusic.muted) {
             bgMusic.muted = false;
             sessionStorage.setItem('nasheedMuted', 'false');
-            if (bgMusic.paused) playMusic();
+            attemptPlay();
         } else {
             bgMusic.muted = true;
             sessionStorage.setItem('nasheedMuted', 'true');
@@ -91,47 +97,23 @@ document.addEventListener("DOMContentLoaded", function() {
     const header = document.querySelector('.header');
 
     if (backBtn) {
-        // إذا وجد زر العودة (في صفحات الألعاب) الإضافة بجانبه
-        backBtn.style.display = 'inline-flex';
-        backBtn.style.alignItems = 'center';
-        
-        // نضعهم في حاوية واحدة لضمان الالتصاق
-        const container = document.createElement('div');
-        container.style.display = 'flex';
-        container.style.alignItems = 'center';
-        
-        backBtn.parentNode.insertBefore(container, backBtn);
-        container.appendChild(backBtn);
-        container.appendChild(muteBtn);
+        muteBtn.style.marginRight = '8px';
+        const topBar = document.querySelector('.top-bar');
+        if (topBar) {
+            // نضع الزر بجانب زر العودة
+            backBtn.insertAdjacentElement('afterend', muteBtn);
+        }
     } else if (header) {
-        // في الصفحة الرئيسية، نضعه أسفل العنوان بشكل أنيق
         muteBtn.style.background = 'white';
         muteBtn.style.color = '#2196F3';
         muteBtn.style.border = '2px solid #2196F3';
-        muteBtn.style.margin = '10px auto';
-        muteBtn.innerHTML = bgMusic.muted ? '🔇 تشغيل الآهات' : '🔊 إيقاف الآهات';
-        updateBtnText = () => {
-            muteBtn.innerHTML = bgMusic.muted ? '🔇 تشغيل الآهات' : '🔊 إيقاف الآهات';
-        };
+        muteBtn.style.margin = '15px auto';
         header.appendChild(muteBtn);
-    } else {
-        // حالة احتياطية
-        muteBtn.style.position = 'fixed';
-        muteBtn.style.bottom = '20px';
-        muteBtn.style.left = '15px';
-        muteBtn.style.zIndex = '9999';
-        muteBtn.style.background = 'white';
-        muteBtn.style.color = '#2196F3';
-        document.body.appendChild(muteBtn);
     }
 
-    // حفظ مكان ثانية التشغيل عند القفز للألعاب أو الخروج منها (ليستمر النشيد بدقة)
+    // حفظ التقدم عند الخروج
     window.addEventListener('beforeunload', () => {
-        if(!bgMusic.paused) {
-            sessionStorage.setItem('nasheedTime', bgMusic.currentTime);
-            sessionStorage.setItem('nasheedPlaying', 'true');
-        } else {
-            sessionStorage.setItem('nasheedPlaying', 'false');
-        }
+        sessionStorage.setItem('nasheedTime', bgMusic.currentTime);
+        sessionStorage.setItem('nasheedPlaying', bgMusic.paused ? 'false' : 'true');
     });
 });
