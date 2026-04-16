@@ -48,52 +48,82 @@ document.addEventListener("DOMContentLoaded", function() {
         }, { once: true });
     }
 
-    // إضافة زر التحكم في الصوت العائم
+    // إضافة زر التحكم في الصوت
     const muteBtn = document.createElement('button');
-    muteBtn.innerHTML = isMuted ? '🔇 تشغيل الآهات' : '🔊 إيقاف الآهات';
+    const updateBtnText = () => {
+        muteBtn.innerHTML = bgMusic.muted ? '🔇' : '🔊';
+        muteBtn.title = bgMusic.muted ? 'تشغيل الآهات' : 'إيقاف الآهات';
+    };
+    updateBtnText();
+
+    // تصميم الزر ليكون متوافقاً مع زر العودة
     muteBtn.style.cssText = `
-        position: fixed;
-        left: 15px;
-        z-index: 9999;
-        background: #fff;
-        border: 2px solid #2196F3;
-        color: #2196F3;
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
         border-radius: 20px;
         padding: 5px 12px;
-        font-size: 0.9rem;
-        font-weight: bold;
+        font-size: 1.1rem;
         cursor: pointer;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         display: flex;
         align-items: center;
-        gap: 5px;
-        font-family: inherit;
+        justify-content: center;
         transition: all 0.2s ease;
+        margin-right: 8px;
+        height: 34px;
+        font-family: inherit;
     `;
-    
-    if (document.getElementById('signsBank')) {
-        // في صفحة الجدول، نرفعه لكي لا يغطي بنك الإجابات الملامس للأسفل
-        muteBtn.style.bottom = "165px"; 
-    } else {
-        // في باقي الصفحات يكون بالأسفل كالمعتاد
-        muteBtn.style.bottom = "20px";
-    }
 
     muteBtn.onclick = () => {
         if (bgMusic.muted) {
             bgMusic.muted = false;
-            muteBtn.innerHTML = '🔊 إيقاف الآهات';
             sessionStorage.setItem('nasheedMuted', 'false');
-            if (bgMusic.paused) {
-                playMusic();
-            }
+            if (bgMusic.paused) playMusic();
         } else {
             bgMusic.muted = true;
-            muteBtn.innerHTML = '🔇 تشغيل الآهات';
             sessionStorage.setItem('nasheedMuted', 'true');
         }
+        updateBtnText();
     };
-    document.body.appendChild(muteBtn);
+
+    // تحديد مكان الإضافة
+    const backBtn = document.querySelector('.back-btn');
+    const header = document.querySelector('.header');
+
+    if (backBtn) {
+        // إذا وجد زر العودة (في صفحات الألعاب) الإضافة بجانبه
+        backBtn.style.display = 'inline-flex';
+        backBtn.style.alignItems = 'center';
+        
+        // نضعهم في حاوية واحدة لضمان الالتصاق
+        const container = document.createElement('div');
+        container.style.display = 'flex';
+        container.style.alignItems = 'center';
+        
+        backBtn.parentNode.insertBefore(container, backBtn);
+        container.appendChild(backBtn);
+        container.appendChild(muteBtn);
+    } else if (header) {
+        // في الصفحة الرئيسية، نضعه أسفل العنوان بشكل أنيق
+        muteBtn.style.background = 'white';
+        muteBtn.style.color = '#2196F3';
+        muteBtn.style.border = '2px solid #2196F3';
+        muteBtn.style.margin = '10px auto';
+        muteBtn.innerHTML = bgMusic.muted ? '🔇 تشغيل الآهات' : '🔊 إيقاف الآهات';
+        updateBtnText = () => {
+            muteBtn.innerHTML = bgMusic.muted ? '🔇 تشغيل الآهات' : '🔊 إيقاف الآهات';
+        };
+        header.appendChild(muteBtn);
+    } else {
+        // حالة احتياطية
+        muteBtn.style.position = 'fixed';
+        muteBtn.style.bottom = '20px';
+        muteBtn.style.left = '15px';
+        muteBtn.style.zIndex = '9999';
+        muteBtn.style.background = 'white';
+        muteBtn.style.color = '#2196F3';
+        document.body.appendChild(muteBtn);
+    }
 
     // حفظ مكان ثانية التشغيل عند القفز للألعاب أو الخروج منها (ليستمر النشيد بدقة)
     window.addEventListener('beforeunload', () => {
