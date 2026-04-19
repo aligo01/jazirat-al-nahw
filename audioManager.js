@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function() {
         bgMusic.id = 'bgMusic';
         bgMusic.loop = true;
         bgMusic.preload = 'auto'; // تحميل مسبق تلقائي
-        bgMusic.src = 'nasheed.wav';
+        bgMusic.src = 'Forest Ambient Sound.m4a'; // تغيير إلى صوت الغابة الجديد
         bgMusic.volume = 0.2; 
         document.body.appendChild(bgMusic);
     }
@@ -53,10 +53,10 @@ document.addEventListener("DOMContentLoaded", function() {
         // في الصفحة الرئيسية نستخدم نص، في الصفحات الأخرى أيقونة فقط
         const isMainPage = !document.querySelector('.back-btn');
         if (isMainPage) {
-            muteBtn.innerHTML = bgMusic.muted ? '🔇 تشغيل الآهات' : '🔊 إيقاف الآهات';
+            muteBtn.innerHTML = bgMusic.muted ? '🔇 تشغيل صوت الخلفية' : '🔊 غلق صوت الخلفية';
         } else {
             muteBtn.innerHTML = bgMusic.muted ? '🔇' : '🔊';
-            muteBtn.title = bgMusic.muted ? 'تشغيل الآهات' : 'إيقاف الآهات';
+            muteBtn.title = bgMusic.muted ? 'تشغيل صوت الخلفية' : 'غلق صوت الخلفية';
         }
     };
     updateBtnText();
