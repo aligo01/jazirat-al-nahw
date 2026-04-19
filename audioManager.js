@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function() {
         bgMusic.id = 'bgMusic';
         bgMusic.loop = true;
         bgMusic.preload = 'auto'; // تحميل مسبق تلقائي
-        bgMusic.src = 'Forest Ambient Sound.m4a'; // تغيير إلى صوت الغابة الجديد
+        bgMusic.src = 'Forest Ambient Sound.m4a'; // صوت الغابة
         bgMusic.volume = 0.2; 
         document.body.appendChild(bgMusic);
     }
